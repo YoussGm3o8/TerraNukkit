@@ -11,28 +11,47 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import com.dfsek.terra.api.block.state.properties.Property;
-import com.dfsek.terra.api.util.generic.Lazy;
 
 
 public interface EnumProperty<T extends Enum<T>> extends Property<T> {
     static <T extends Enum<T>> EnumProperty<T> of(String name, Class<T> clazz) {
         return new EnumProperty<>() {
-            private final Lazy<Collection<T>> constants = Lazy.lazy(() -> Arrays.asList(clazz.getEnumConstants()));
+            private final Collection<T> values = Arrays.asList(clazz.getEnumConstants());
 
             @Override
             public Collection<T> values() {
-                return constants.value();
-            }
-
-            @Override
-            public Class<T> getType() {
-                return clazz;
+                return values;
             }
 
             @Override
             public String getID() {
                 return name;
             }
+            
+            @Override
+            public T getDefaultValue() {
+                return values.iterator().next(); // Default to first enum value
+            }
+            
+            @Override
+            public String getName() {
+                return name;
+            }
+            
+            @Override
+            public Class<T> getValueClass() {
+                return clazz;
+            }
+            
+            @Override
+            public Iterable<T> getValues() {
+                return values;
+            }
         };
+    }
+
+    @Override
+    default Class<T> getType() {
+        return getValueClass();
     }
 }

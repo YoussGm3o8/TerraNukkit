@@ -27,6 +27,26 @@ public interface BooleanProperty extends Property<Boolean> {
             public String getID() {
                 return name;
             }
+            
+            @Override
+            public Boolean getDefaultValue() {
+                return false; // Default to false
+            }
+            
+            @Override
+            public String getName() {
+                return name;
+            }
+            
+            @Override
+            public Class<Boolean> getValueClass() {
+                return Boolean.class;
+            }
+            
+            @Override
+            public Iterable<Boolean> getValues() {
+                return BOOLEANS;
+            }
         };
     }
 

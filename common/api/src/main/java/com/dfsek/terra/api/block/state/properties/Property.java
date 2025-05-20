@@ -13,9 +13,39 @@ import com.dfsek.terra.api.registry.key.StringIdentifiable;
 
 
 /**
- * Represents a property a state holds
+ * Represents a property on a block state.
+ *
+ * @param <T> Type of value this property holds
  */
-public interface Property<T> extends StringIdentifiable {
+public interface Property<T extends Comparable<T>> extends StringIdentifiable {
+    /**
+     * Get the name of this property.
+     *
+     * @return Property name
+     */
+    String getName();
+    
+    /**
+     * Get the class of values this property holds.
+     *
+     * @return Value class
+     */
+    Class<T> getValueClass();
+    
+    /**
+     * Get the possible values this property can hold.
+     *
+     * @return Possible values
+     */
+    Iterable<T> getValues();
+    
+    /**
+     * Get the default value of this property.
+     *
+     * @return Default value
+     */
+    T getDefaultValue();
+
     /**
      * Get all possible values of this property
      *

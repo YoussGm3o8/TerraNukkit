@@ -43,7 +43,7 @@ afterEvaluate {
     forImmediateSubProjects(":platforms") {
         configureDistribution()
     }
-    project(":platforms:bukkit:common").configureDistribution()
+    // project(":platforms:bukkit:common").configureDistribution() // Commented out as project is excluded
     project(":platforms:minestom:example").configureDistribution()
     forSubProjects(":common:addons") {
         apply(plugin = "com.gradleup.shadow")

@@ -1,0 +1,24 @@
+# TerraNukkit Configuration
+
+# Debug settings
+debug:
+  # Whether to enable the debug profiler
+  profiler: false
+  # Whether to enable debug logging
+  log: false
+
+# Resource settings
+config:
+  # Whether to dump default config files at startup
+  dump-default: true
+
+# Performance settings
+performance:
+  # Number of threads to use for generation
+  # Set to 0 to use logical core count / 2
+  threads: 0
+  
+# Generator settings
+generation:
+  # Whether to use the Terra biome palette resolution
+  use-palette-biomes: true 

@@ -35,6 +35,26 @@ public interface IntProperty extends Property<Integer> {
             public String getID() {
                 return name;
             }
+            
+            @Override
+            public Integer getDefaultValue() {
+                return min; // Default to minimum value
+            }
+            
+            @Override
+            public String getName() {
+                return name;
+            }
+            
+            @Override
+            public Class<Integer> getValueClass() {
+                return Integer.class;
+            }
+            
+            @Override
+            public Iterable<Integer> getValues() {
+                return collection;
+            }
         };
     }
 

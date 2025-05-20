@@ -1,0 +1,29 @@
+name: TerraNukkit
+version: 1.0.0 # Hardcoded version instead of ${version}
+main: com.dfsek.terra.nukkit.TerraNukkitPlugin
+api: ["1.1.0"] # Specify the Nukkit API version(s) this plugin is compatible with
+author: YoussGm3o8 # Replace with actual author name
+description: Terra world generation for Nukkit
+# Add commands, permissions, etc. here as needed later
+load: STARTUP # Load the plugin at server startup 
+
+# Declare the custom world generator
+generators:
+  terra: com.dfsek.terra.nukkit.generator.NukkitGenerator
+
+# Define permissions
+permissions:
+  terra.command:
+    description: Allows access to the base /terra command.
+    default: op # Or true/false depending on desired default access
+    children:
+      terra.command.nukkit:
+        description: Allows access to /terra nukkit subcommands.
+        default: op
+        children:
+          terra.command.nukkit.reload:
+            description: Allows reloading Terra configuration.
+            default: op
+          terra.command.nukkit.testpack:
+            description: Allows testing config pack existence.
+            default: op 

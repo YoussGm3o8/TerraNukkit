@@ -1,0 +1,289 @@
+{
+  "minecraft:air": {
+    "id": 0,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:stone": {
+    "id": 1,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:grass_block": {
+    "id": 2,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:dirt": {
+    "id": 3,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:cobblestone": {
+    "id": 4,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:bedrock": {
+    "id": 7,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:water": {
+    "id": 9,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:lava": {
+    "id": 11,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:sand": {
+    "id": 12,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:gravel": {
+    "id": 13,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:oak_log": {
+    "id": 17,
+    "default_data": 0,
+    "states": [
+      { "properties": {"axis": "y"}, "data": 0 },
+      { "properties": {"axis": "z"}, "data": 8 },
+      { "properties": {"axis": "x"}, "data": 4 },
+      { "properties": {"axis": "none"}, "data": 12 }
+    ]
+  },
+  "minecraft:spruce_log": {
+    "id": 17,
+    "default_data": 1,
+    "states": [
+      { "properties": {"axis": "y"}, "data": 1 },
+      { "properties": {"axis": "z"}, "data": 9 },
+      { "properties": {"axis": "x"}, "data": 5 },
+      { "properties": {"axis": "none"}, "data": 13 }
+    ]
+  },
+  "minecraft:birch_log": {
+    "id": 17,
+    "default_data": 2,
+    "states": [
+      { "properties": {"axis": "y"}, "data": 2 },
+      { "properties": {"axis": "z"}, "data": 10 },
+      { "properties": {"axis": "x"}, "data": 6 },
+      { "properties": {"axis": "none"}, "data": 14 }
+    ]
+  },
+  "minecraft:jungle_log": {
+    "id": 17,
+    "default_data": 3,
+    "states": [
+      { "properties": {"axis": "y"}, "data": 3 },
+      { "properties": {"axis": "z"}, "data": 11 },
+      { "properties": {"axis": "x"}, "data": 7 },
+      { "properties": {"axis": "none"}, "data": 15 }
+    ]
+  },
+  "minecraft:oak_stairs": {
+    "id": 53,
+    "default_data": 0,
+    "states": [
+      { "properties": {"facing": "east", "half": "bottom"}, "data": 0 },
+      { "properties": {"facing": "west", "half": "bottom"}, "data": 1 },
+      { "properties": {"facing": "south", "half": "bottom"}, "data": 2 },
+      { "properties": {"facing": "north", "half": "bottom"}, "data": 3 },
+      { "properties": {"facing": "east", "half": "top"}, "data": 4 },
+      { "properties": {"facing": "west", "half": "top"}, "data": 5 },
+      { "properties": {"facing": "south", "half": "top"}, "data": 6 },
+      { "properties": {"facing": "north", "half": "top"}, "data": 7 }
+    ]
+  },
+  "minecraft:cobblestone_stairs": {
+    "id": 67,
+    "default_data": 0,
+    "states": [
+      { "properties": {"facing": "east", "half": "bottom"}, "data": 0 },
+      { "properties": {"facing": "west", "half": "bottom"}, "data": 1 },
+      { "properties": {"facing": "south", "half": "bottom"}, "data": 2 },
+      { "properties": {"facing": "north", "half": "bottom"}, "data": 3 },
+      { "properties": {"facing": "east", "half": "top"}, "data": 4 },
+      { "properties": {"facing": "west", "half": "top"}, "data": 5 },
+      { "properties": {"facing": "south", "half": "top"}, "data": 6 },
+      { "properties": {"facing": "north", "half": "top"}, "data": 7 }
+    ]
+  },
+  "minecraft:stone_slab": {
+    "id": 44,
+    "default_data": 0,
+    "states": [
+      { "properties": {"type": "bottom"}, "data": 0 },
+      { "properties": {"type": "top"},    "data": 8 },
+      { "properties": {"type": "double"}, "data": 0 }
+    ]
+  },
+  "minecraft:cobblestone_slab": {
+    "id": 44,
+    "default_data": 3,
+    "states": [
+      { "properties": {"type": "bottom"}, "data": 3 },
+      { "properties": {"type": "top"},    "data": 11 },
+      { "properties": {"type": "double"}, "data": 3 }
+    ]
+  },
+  "minecraft:sandstone": {
+    "id": 24,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:sandstone_stairs": {
+    "id": 128,
+    "default_data": 0,
+    "states": [
+      { "properties": {"facing": "east", "half": "bottom"}, "data": 0 },
+      { "properties": {"facing": "west", "half": "bottom"}, "data": 1 },
+      { "properties": {"facing": "south", "half": "bottom"}, "data": 2 },
+      { "properties": {"facing": "north", "half": "bottom"}, "data": 3 },
+      { "properties": {"facing": "east", "half": "top"}, "data": 4 },
+      { "properties": {"facing": "west", "half": "top"}, "data": 5 },
+      { "properties": {"facing": "south", "half": "top"}, "data": 6 },
+      { "properties": {"facing": "north", "half": "top"}, "data": 7 }
+    ]
+  },
+  "minecraft:stone_brick_slab": {
+    "id": 44,
+    "default_data": 5,
+    "states": [
+      { "properties": {"type": "bottom"}, "data": 5 },
+      { "properties": {"type": "top"},    "data": 13 },
+      { "properties": {"type": "double"}, "data": 5 }
+    ]
+  },
+  "minecraft:brick_slab": {
+    "id": 44,
+    "default_data": 4,
+    "states": [
+      { "properties": {"type": "bottom"}, "data": 4 },
+      { "properties": {"type": "top"},    "data": 12 },
+      { "properties": {"type": "double"}, "data": 4 }
+    ]
+  },
+  "minecraft:oak_fence": {
+    "id": 85,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:spruce_fence": {
+    "id": 85,
+    "default_data": 1,
+    "states": []
+  },
+  "minecraft:birch_fence": {
+    "id": 85,
+    "default_data": 2,
+    "states": []
+  },
+  "minecraft:jungle_fence": {
+    "id": 85,
+    "default_data": 3,
+    "states": []
+  },
+  "minecraft:acacia_fence": {
+    "id": 85,
+    "default_data": 4,
+    "states": []
+  },
+  "minecraft:dark_oak_fence": {
+    "id": 85,
+    "default_data": 5,
+    "states": []
+  },
+  "minecraft:acacia_log": {
+    "id": 162,
+    "default_data": 0,
+    "states": [
+      { "properties": {"axis": "y"}, "data": 0 },
+      { "properties": {"axis": "z"}, "data": 8 },
+      { "properties": {"axis": "x"}, "data": 4 },
+      { "properties": {"axis": "none"}, "data": 12 }
+    ]
+  },
+  "minecraft:dark_oak_log": {
+    "id": 162,
+    "default_data": 1,
+    "states": [
+      { "properties": {"axis": "y"}, "data": 1 },
+      { "properties": {"axis": "z"}, "data": 9 },
+      { "properties": {"axis": "x"}, "data": 5 },
+      { "properties": {"axis": "none"}, "data": 13 }
+    ]
+  },
+  "minecraft:oak_door": {
+    "id": 64,
+    "default_data": 0,
+    "states": [
+      { "properties": {"facing": "east",  "open": "false", "half": "lower"}, "data": 0 },
+      { "properties": {"facing": "south", "open": "false", "half": "lower"}, "data": 1 },
+      { "properties": {"facing": "west",  "open": "false", "half": "lower"}, "data": 2 },
+      { "properties": {"facing": "north", "open": "false", "half": "lower"}, "data": 3 },
+      { "properties": {"facing": "east",  "open": "true",  "half": "lower"}, "data": 4 },
+      { "properties": {"facing": "south", "open": "true",  "half": "lower"}, "data": 5 },
+      { "properties": {"facing": "west",  "open": "true",  "half": "lower"}, "data": 6 },
+      { "properties": {"facing": "north", "open": "true",  "half": "lower"}, "data": 7 },
+      { "properties": {"half": "upper"}, "data": 8 }
+    ]
+  },
+  "minecraft:iron_door": {
+    "id": 71,
+    "default_data": 0,
+    "states": [
+      { "properties": {"facing": "east",  "open": "false", "half": "lower"}, "data": 0 },
+      { "properties": {"facing": "south", "open": "false", "half": "lower"}, "data": 1 },
+      { "properties": {"facing": "west",  "open": "false", "half": "lower"}, "data": 2 },
+      { "properties": {"facing": "north", "open": "false", "half": "lower"}, "data": 3 },
+      { "properties": {"facing": "east",  "open": "true",  "half": "lower"}, "data": 4 },
+      { "properties": {"facing": "south", "open": "true",  "half": "lower"}, "data": 5 },
+      { "properties": {"facing": "west",  "open": "true",  "half": "lower"}, "data": 6 },
+      { "properties": {"facing": "north", "open": "true",  "half": "lower"}, "data": 7 },
+      { "properties": {"half": "upper"}, "data": 8 }
+    ]
+  },
+  "minecraft:grass_path": {
+    "id": 198,
+    "default_data": 0,
+    "states": []
+  },
+  "minecraft:farmland": {
+    "id": 60,
+    "default_data": 0,
+    "states": [
+      { "properties": {"moisture": "0"}, "data": 0 },
+      { "properties": {"moisture": "1"}, "data": 1 },
+      { "properties": {"moisture": "2"}, "data": 2 },
+      { "properties": {"moisture": "3"}, "data": 3 },
+      { "properties": {"moisture": "4"}, "data": 4 },
+      { "properties": {"moisture": "5"}, "data": 5 },
+      { "properties": {"moisture": "6"}, "data": 6 },
+      { "properties": {"moisture": "7"}, "data": 7 }
+    ]
+  },
+  "minecraft:chest": {
+    "id": 54,
+    "default_data": 2,
+    "states": [
+      { "properties": {"facing": "north"}, "data": 2 },
+      { "properties": {"facing": "south"}, "data": 3 },
+      { "properties": {"facing": "west"},  "data": 4 },
+      { "properties": {"facing": "east"},  "data": 5 }
+    ]
+  },
+  "minecraft:tuff": {
+    "id": -333,
+    "default_data": 0,
+    "states": []
+  }
+} 

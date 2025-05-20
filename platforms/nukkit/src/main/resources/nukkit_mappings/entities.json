@@ -1,0 +1,15 @@
+{
+  "minecraft:cow": "minecraft:cow",
+  "minecraft:pig": "minecraft:pig",
+  "minecraft:sheep": "minecraft:sheep",
+  "minecraft:chicken": "minecraft:chicken",
+  "minecraft:zombie": "minecraft:zombie",
+  "minecraft:skeleton": "minecraft:skeleton",
+  "minecraft:creeper": "minecraft:creeper",
+  "minecraft:spider": "minecraft:spider",
+  "minecraft:enderman": "minecraft:enderman",
+  "minecraft:armor_stand": "minecraft:armor_stand",
+  "minecraft:villager": "minecraft:villager",
+  "minecraft:iron_golem": "minecraft:iron_golem",
+  "minecraft:snow_golem": "minecraft:snow_golem"
+} 
