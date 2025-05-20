@@ -115,7 +115,7 @@ public class NukkitMapping {
         } else if (name.startsWith("potted_")) {
             return Block.get(Block.FLOWER_POT_BLOCK); // Flower pot fallback
         } else if (name.endsWith("_ore")) {
-            return Block.get(Block.STONE); // Ore fallback (to stone)
+            return Block.get(Block.DIAMOND_BLOCK); // Ore fallback now shows as diamond block
         } else if (name.endsWith("_terracotta")) {
             return Block.get(Block.TERRACOTTA); // Terracotta fallback
         } else if (name.endsWith("_coral") || name.endsWith("_fan")) {
@@ -132,7 +132,7 @@ public class NukkitMapping {
                    name.endsWith("_mushroom_block")) {
             return Block.get(Block.BROWN_MUSHROOM_BLOCK); // Mushroom fallback
         } else if (name.equals("tuff") || name.equals("calcite") || name.equals("smooth_basalt")) {
-            return Block.get(Block.STONE); // Stone-like fallback
+            return Block.get(Block.DIAMOND_BLOCK); // Stone-like blocks now show as diamond
         } else if (name.startsWith("flowering_") || name.equals("azalea") || 
                    name.equals("spore_blossom")) {
             return Block.get(Block.LEAVES); // Flowering blocks fallback to leaves
@@ -150,10 +150,10 @@ public class NukkitMapping {
             return Block.get(Block.AIR); // Air variants
         }
         
-        // Generic fallbacks based on material type (wood-related, stone-related, etc)
+        // Generic fallbacks based on material type - now using diamond blocks for visibility
         if (name.contains("granite") || name.contains("diorite") || name.contains("andesite") ||
             name.contains("deepslate") || name.contains("blackstone") || name.contains("basalt")) {
-            return Block.get(Block.STONE); // Stone variant fallback
+            return Block.get(Block.DIAMOND_BLOCK); // Stone variants now show as diamond
         } else if (name.contains("cherry") || name.contains("bamboo") || name.contains("mangrove")) {
             // Newer wood types fallback to generic wood blocks
             if (name.contains("log")) return Block.get(Block.LOG);
@@ -162,18 +162,18 @@ public class NukkitMapping {
             return Block.get(Block.PLANKS); // Default to planks for other wood items
         }
         
-        // Last category fallbacks for common materials
+        // Last category fallbacks for common materials - changed to diamond blocks
         if (name.contains("stone")) {
-            return Block.get(Block.STONE);
+            return Block.get(Block.DIAMOND_BLOCK);
         } else if (name.contains("dirt")) {
             return Block.get(Block.DIRT);
         } else if (name.contains("sand")) {
             return Block.get(Block.SAND);
         }
         
-        // If we still don't have a mapping, log a special message and return null
-        LOGGER.debug("No fallback mapping available for: {}", name);
-        return null;
+        // Final fallback is now diamond blocks
+        LOGGER.debug("No specific fallback mapping for: {}. Using diamond block for visibility.", name);
+        return Block.get(Block.DIAMOND_BLOCK);
     }
 
     /**
@@ -182,6 +182,7 @@ public class NukkitMapping {
     private static Block getBlockByCommonName(String name) {
         // This mapping covers common base blocks
         switch (name.toLowerCase()) {
+            // Basic blocks
             case "stone": return Block.get(Block.STONE);
             case "grass_block": return Block.get(Block.GRASS);
             case "dirt": return Block.get(Block.DIRT);
@@ -230,7 +231,34 @@ public class NukkitMapping {
             case "sandstone": return Block.get(Block.SANDSTONE);
             case "terracotta": return Block.get(Block.TERRACOTTA);
             case "air": case "cave_air": case "void_air": return Block.get(Block.AIR);
-            default: return null;
+            
+            // Modern blocks (1.13+)
+            case "deepslate": return Block.get(Block.STONE, 3); // Using diorite as closest visual match
+            case "calcite": return Block.get(Block.QUARTZ_BLOCK);
+            case "tuff": return Block.get(Block.STONE, 5); // Using andesite as closest visual match
+            case "copper_ore": return Block.get(Block.GOLD_ORE);
+            case "copper_block": return Block.get(Block.GOLD_BLOCK);
+            case "raw_copper_block": return Block.get(Block.GOLD_BLOCK);
+            case "raw_iron_block": return Block.get(Block.IRON_BLOCK);
+            case "raw_gold_block": return Block.get(Block.GOLD_BLOCK);
+            case "amethyst_block": return Block.get(Block.PURPUR_BLOCK);
+            case "amethyst_cluster": return Block.get(Block.END_ROD);
+            case "sculk": case "sculk_sensor": return Block.get(Block.WOOL, 11); // Blue wool
+            case "moss_block": return Block.get(Block.MOSS_STONE);
+            case "smooth_basalt": return Block.get(Block.STONE, 6);
+            case "deepslate_coal_ore": return Block.get(Block.COAL_ORE);
+            case "deepslate_iron_ore": return Block.get(Block.IRON_ORE);
+            case "deepslate_gold_ore": return Block.get(Block.GOLD_ORE);
+            case "deepslate_redstone_ore": return Block.get(Block.REDSTONE_ORE);
+            case "deepslate_diamond_ore": return Block.get(Block.DIAMOND_ORE);
+            case "deepslate_lapis_ore": return Block.get(Block.LAPIS_ORE);
+            case "deepslate_emerald_ore": return Block.get(Block.EMERALD_ORE);
+            case "powder_snow": return Block.get(Block.SNOW_BLOCK);
+
+            // Log a message and return null for debugging
+            default:
+                LOGGER.debug("No direct mapping for block: {}", name);
+                return null;
         }
     }
     

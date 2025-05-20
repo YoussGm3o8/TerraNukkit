@@ -7,9 +7,10 @@ description: Terra world generation for Nukkit
 # Add commands, permissions, etc. here as needed later
 load: STARTUP # Load the plugin at server startup 
 
-# Declare the custom world generator
+# Declare the custom world generators
 generators:
   terra: com.dfsek.terra.nukkit.generator.NukkitGenerator
+  # The specific pack generators will be registered programmatically
 
 # Define permissions
 permissions:
@@ -17,6 +18,15 @@ permissions:
     description: Allows access to the base /terra command.
     default: op # Or true/false depending on desired default access
     children:
+      terra.command.reload:
+        description: Allows reloading Terra configuration.
+        default: op
+      terra.command.create:
+        description: Allows creating new Terra worlds.
+        default: op
+      terra.command.test:
+        description: Allows running performance tests on Terra worlds.
+        default: op
       terra.command.nukkit:
         description: Allows access to /terra nukkit subcommands.
         default: op
