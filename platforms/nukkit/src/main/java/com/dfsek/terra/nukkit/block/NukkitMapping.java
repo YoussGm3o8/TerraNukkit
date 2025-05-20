@@ -1,11 +1,26 @@
 package com.dfsek.terra.nukkit.block;
 
 import cn.nukkit.block.Block;
+import com.dfsek.terra.nukkit.TerraNukkitPlugin;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.TypeAdapterFactory;
+import com.google.gson.annotations.SerializedName;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.TreeMap;
 
 /**
@@ -16,6 +31,17 @@ public class NukkitMapping {
     private static final Map<String, Block> BLOCK_CACHE = new HashMap<>();
     private static boolean FALLBACK_ENABLED = true; // Set to true to enable fallback mappings
     
+    private static final Gson GSON = new GsonBuilder()
+        .registerTypeAdapterFactory(new IgnoreFailureTypeAdapterFactory())
+        .create();
+
+    private static final Map<String, Map<String, String>> JE_BLOCK_DEFAULT_PROPERTIES = new HashMap<>();
+    private static final Map<Integer, Block> JE_BLOCK_STATE_HASH_TO_NUKKIT = new HashMap<>();
+    private static final Map<Block, NukkitJeBlockState> NUKKIT_TO_JE_BLOCK_STATE = new HashMap<>();
+
+    // Fallback block for completely unknown blocks
+    private static final Block FALLBACK_BLOCK = Block.get(Block.DIAMOND_BLOCK);
+
     /**
      * Convert a Java Edition block state string to a Nukkit block.
      * 
@@ -23,6 +49,13 @@ public class NukkitMapping {
      * @return Nukkit block
      */
     public static Block blockStateJeToNukkit(NukkitJeBlockState jeBlockState) {
+        // First, check mapping using the hash code (for exact matches with properties)
+        Block block = JE_BLOCK_STATE_HASH_TO_NUKKIT.get(jeBlockState.getHash());
+        if (block != null) {
+            return block.clone();
+        }
+        
+        // Next, try to get by just the identifier (without properties)
         String id = jeBlockState.identifier;
         
         // Remove minecraft: prefix if present
@@ -38,13 +71,16 @@ public class NukkitMapping {
             }
         }
         
-        // Map the ID to Nukkit blocks - try by name first
-        Block block = null;
+        // If not in mapping, try to get by name
         try {
-            // Try to get the block by name from Nukkit
             block = getBlockByCommonName(id);
         } catch (Exception e) {
             LOGGER.warn("Error getting block by name: {}", id, e);
+        }
+        
+        // Log any unknown blocks we couldn't map directly
+        if (block == null) {
+            LOGGER.debug("No direct mapping for block: {}", id);
         }
         
         if (block == null && FALLBACK_ENABLED) {
@@ -54,7 +90,8 @@ public class NukkitMapping {
         
         if (block == null) {
             LOGGER.warn("Failed to map block state: {}", jeBlockState);
-            block = Block.get(Block.AIR); // Last resort fallback is air
+            LOGGER.warn("CRITICAL: Failed to map block: {} - using fallback block", id);
+            block = FALLBACK_BLOCK; // Last resort fallback
         }
         
         // Add to cache for future lookups
@@ -83,6 +120,9 @@ public class NukkitMapping {
      * Get a fallback block for unknown block types based on naming patterns.
      */
     private static Block getFallbackBlock(String name) {
+        // Print warning about using fallback
+        LOGGER.info("Using fallback mapping for block: {}", name);
+        
         // Handle common prefixes and suffixes
         if (name.endsWith("_log") || name.endsWith("_wood")) {
             return Block.get(Block.WOOD); // Wood/log fallback
@@ -115,7 +155,7 @@ public class NukkitMapping {
         } else if (name.startsWith("potted_")) {
             return Block.get(Block.FLOWER_POT_BLOCK); // Flower pot fallback
         } else if (name.endsWith("_ore")) {
-            return Block.get(Block.DIAMOND_BLOCK); // Ore fallback now shows as diamond block
+            return Block.get(Block.DIAMOND_BLOCK); // Ore fallback shows as diamond block
         } else if (name.endsWith("_terracotta")) {
             return Block.get(Block.TERRACOTTA); // Terracotta fallback
         } else if (name.endsWith("_coral") || name.endsWith("_fan")) {
@@ -131,56 +171,18 @@ public class NukkitMapping {
         } else if (name.endsWith("_mushroom") || name.equals("mushroom_stem") || 
                    name.endsWith("_mushroom_block")) {
             return Block.get(Block.BROWN_MUSHROOM_BLOCK); // Mushroom fallback
-        } else if (name.equals("tuff") || name.equals("calcite") || name.equals("smooth_basalt")) {
-            return Block.get(Block.DIAMOND_BLOCK); // Stone-like blocks now show as diamond
-        } else if (name.startsWith("flowering_") || name.equals("azalea") || 
-                   name.equals("spore_blossom")) {
-            return Block.get(Block.LEAVES); // Flowering blocks fallback to leaves
-        } else if (name.endsWith("crops") || name.equals("wheat") || 
-                   name.equals("carrots") || name.equals("potatoes") || 
-                   name.equals("beetroots") || name.equals("melon_stem") || 
-                   name.equals("pumpkin_stem")) {
-            return Block.get(Block.WHEAT_BLOCK); // Crops fallback
-        } else if (name.equals("snow") || name.equals("snow_block") || name.equals("powder_snow")) {
-            return Block.get(Block.SNOW_BLOCK); // Snow fallback
-        } else if (name.equals("packed_ice") || name.equals("blue_ice") || 
-                   name.equals("frosted_ice")) {
-            return Block.get(Block.ICE); // Ice variants fallback
-        } else if (name.equals("air") || name.equals("cave_air") || name.equals("void_air")) {
-            return Block.get(Block.AIR); // Air variants
         }
         
-        // Generic fallbacks based on material type - now using diamond blocks for visibility
-        if (name.contains("granite") || name.contains("diorite") || name.contains("andesite") ||
-            name.contains("deepslate") || name.contains("blackstone") || name.contains("basalt")) {
-            return Block.get(Block.DIAMOND_BLOCK); // Stone variants now show as diamond
-        } else if (name.contains("cherry") || name.contains("bamboo") || name.contains("mangrove")) {
-            // Newer wood types fallback to generic wood blocks
-            if (name.contains("log")) return Block.get(Block.LOG);
-            if (name.contains("plank")) return Block.get(Block.PLANKS);
-            if (name.contains("leave")) return Block.get(Block.LEAVES);
-            return Block.get(Block.PLANKS); // Default to planks for other wood items
-        }
-        
-        // Last category fallbacks for common materials - changed to diamond blocks
-        if (name.contains("stone")) {
-            return Block.get(Block.DIAMOND_BLOCK);
-        } else if (name.contains("dirt")) {
-            return Block.get(Block.DIRT);
-        } else if (name.contains("sand")) {
-            return Block.get(Block.SAND);
-        }
-        
-        // Final fallback is now diamond blocks
-        LOGGER.debug("No specific fallback mapping for: {}. Using diamond block for visibility.", name);
-        return Block.get(Block.DIAMOND_BLOCK);
+        // Final fallback is the fallback block (diamond)
+        LOGGER.info("Using generic fallback block for: {}", name);
+        return FALLBACK_BLOCK;
     }
 
     /**
-     * Helper method to get a block by common name since Nukkit doesn't have a direct method.
+     * Helper method to get a block by common name.
      */
     private static Block getBlockByCommonName(String name) {
-        // This mapping covers common base blocks
+        // This mapping covers common base blocks - will be supplemented by JSON mappings
         switch (name.toLowerCase()) {
             // Basic blocks
             case "stone": return Block.get(Block.STONE);
@@ -188,18 +190,11 @@ public class NukkitMapping {
             case "dirt": return Block.get(Block.DIRT);
             case "cobblestone": return Block.get(Block.COBBLESTONE);
             case "oak_planks": case "planks": return Block.get(Block.PLANKS);
-            case "oak_sapling": case "sapling": return Block.get(Block.SAPLING);
             case "bedrock": return Block.get(Block.BEDROCK);
             case "flowing_water": case "water": return Block.get(Block.WATER);
-            case "still_water": return Block.get(Block.STILL_WATER);
             case "flowing_lava": case "lava": return Block.get(Block.LAVA);
-            case "still_lava": return Block.get(Block.STILL_LAVA);
             case "sand": return Block.get(Block.SAND);
-            case "red_sand": return Block.get(Block.SAND, 1);
             case "gravel": return Block.get(Block.GRAVEL);
-            case "gold_ore": return Block.get(Block.GOLD_ORE);
-            case "iron_ore": return Block.get(Block.IRON_ORE);
-            case "coal_ore": return Block.get(Block.COAL_ORE);
             case "oak_log": case "log": return Block.get(Block.LOG);
             case "oak_leaves": case "leaves": return Block.get(Block.LEAVES);
             case "glass": return Block.get(Block.GLASS);
@@ -207,55 +202,9 @@ public class NukkitMapping {
             case "chest": return Block.get(Block.CHEST);
             case "crafting_table": return Block.get(Block.CRAFTING_TABLE);
             case "furnace": return Block.get(Block.FURNACE);
-            case "oak_door": case "wooden_door": return Block.get(Block.WOODEN_DOOR_BLOCK);
-            case "ladder": return Block.get(Block.LADDER);
-            case "cobblestone_stairs": return Block.get(Block.COBBLESTONE_STAIRS);
-            case "snow": case "snow_layer": return Block.get(Block.SNOW_LAYER);
-            case "ice": return Block.get(Block.ICE);
-            case "snow_block": return Block.get(Block.SNOW_BLOCK);
-            case "cactus": return Block.get(Block.CACTUS);
-            case "clay": return Block.get(Block.CLAY_BLOCK);
-            case "sugar_cane": return Block.get(Block.SUGARCANE_BLOCK);
-            case "fence": case "oak_fence": return Block.get(Block.FENCE);
-            case "pumpkin": return Block.get(Block.PUMPKIN);
-            case "netherrack": return Block.get(Block.NETHERRACK);
-            case "soul_sand": return Block.get(Block.SOUL_SAND);
-            case "glowstone": return Block.get(Block.GLOWSTONE_BLOCK);
-            case "white_wool": case "wool": return Block.get(Block.WOOL);
-            case "tnt": return Block.get(Block.TNT);
-            case "bookshelf": return Block.get(Block.BOOKSHELF);
-            case "mossy_cobblestone": return Block.get(Block.MOSS_STONE);
-            case "obsidian": return Block.get(Block.OBSIDIAN);
-            case "oak_slab": case "wooden_slab": return Block.get(Block.WOODEN_SLAB);
-            case "cobblestone_slab": return Block.get(Block.STONE_SLAB);
-            case "sandstone": return Block.get(Block.SANDSTONE);
-            case "terracotta": return Block.get(Block.TERRACOTTA);
             case "air": case "cave_air": case "void_air": return Block.get(Block.AIR);
             
-            // Modern blocks (1.13+)
-            case "deepslate": return Block.get(Block.STONE, 3); // Using diorite as closest visual match
-            case "calcite": return Block.get(Block.QUARTZ_BLOCK);
-            case "tuff": return Block.get(Block.STONE, 5); // Using andesite as closest visual match
-            case "copper_ore": return Block.get(Block.GOLD_ORE);
-            case "copper_block": return Block.get(Block.GOLD_BLOCK);
-            case "raw_copper_block": return Block.get(Block.GOLD_BLOCK);
-            case "raw_iron_block": return Block.get(Block.IRON_BLOCK);
-            case "raw_gold_block": return Block.get(Block.GOLD_BLOCK);
-            case "amethyst_block": return Block.get(Block.PURPUR_BLOCK);
-            case "amethyst_cluster": return Block.get(Block.END_ROD);
-            case "sculk": case "sculk_sensor": return Block.get(Block.WOOL, 11); // Blue wool
-            case "moss_block": return Block.get(Block.MOSS_STONE);
-            case "smooth_basalt": return Block.get(Block.STONE, 6);
-            case "deepslate_coal_ore": return Block.get(Block.COAL_ORE);
-            case "deepslate_iron_ore": return Block.get(Block.IRON_ORE);
-            case "deepslate_gold_ore": return Block.get(Block.GOLD_ORE);
-            case "deepslate_redstone_ore": return Block.get(Block.REDSTONE_ORE);
-            case "deepslate_diamond_ore": return Block.get(Block.DIAMOND_ORE);
-            case "deepslate_lapis_ore": return Block.get(Block.LAPIS_ORE);
-            case "deepslate_emerald_ore": return Block.get(Block.EMERALD_ORE);
-            case "powder_snow": return Block.get(Block.SNOW_BLOCK);
-
-            // Log a message and return null for debugging
+            // We'll mostly use JSON mappings, so just log and return null for others
             default:
                 LOGGER.debug("No direct mapping for block: {}", name);
                 return null;
@@ -269,6 +218,12 @@ public class NukkitMapping {
      * @return Java Edition block state
      */
     public static NukkitJeBlockState blockStateNukkitToJe(Block block) {
+        // Check cache first
+        NukkitJeBlockState cached = NUKKIT_TO_JE_BLOCK_STATE.get(block);
+        if (cached != null) {
+            return cached;
+        }
+        
         String name = block.getName().toLowerCase().replace(" ", "_");
         
         // Use classic Minecraft namespace
@@ -280,7 +235,9 @@ public class NukkitMapping {
         // Add properties based on block damage value where applicable
         addPropertiesFromDamage(block, properties);
         
-        return NukkitJeBlockState.create(identifier, properties);
+        NukkitJeBlockState result = NukkitJeBlockState.create(identifier, properties);
+        NUKKIT_TO_JE_BLOCK_STATE.put(block, result);
+        return result;
     }
     
     /**
@@ -310,6 +267,22 @@ public class NukkitMapping {
                 }
             }
         }
+        
+        // Handle axis property for logs
+        String axis = jeBlockState.getPropertyValue("axis");
+        if (axis != null && isLog(block.getId())) {
+            int damage = block.getDamage() & 0x3; // Keep the wood type (first 2 bits)
+            if ("y".equals(axis)) {
+                // No change needed for y-axis (0)
+            } else if ("x".equals(axis)) {
+                damage |= 0x4; // Set bits for east-west (4)
+            } else if ("z".equals(axis)) {
+                damage |= 0x8; // Set bits for north-south (8)
+            } else if ("none".equals(axis)) {
+                damage |= 0xC; // Set bits for bark block (12)
+            }
+            block.setDamage(damage);
+        }
     }
     
     private static boolean isStairs(int id) {
@@ -327,56 +300,212 @@ public class NukkitMapping {
                id == Block.DOUBLE_SLAB || id == Block.DOUBLE_WOODEN_SLAB;
     }
     
+    private static boolean isLog(int id) {
+        return id == Block.LOG || id == Block.LOG2 || id == Block.WOOD || id == Block.WOOD2;
+    }
+    
     /**
      * Add Java Edition properties based on a Nukkit block's damage value.
      */
     private static void addPropertiesFromDamage(Block block, TreeMap<String, String> properties) {
-        // This would be implemented based on Nukkit's block ID and damage value system
-        // For example, for logs, the damage value indicates the wood type and orientation
+        int id = block.getId();
+        int damage = block.getDamage();
         
-        // For simplicity, we're not implementing full property mapping now
-        // This would be expanded with specific block cases
+        // Logs - add axis property
+        if (isLog(id)) {
+            int axisValue = damage & 0xC; // Get bits 3-4 for axis
+            String axis = "y"; // Default Y
+            
+            if (axisValue == 0x4) {
+                axis = "x"; // East-West
+            } else if (axisValue == 0x8) {
+                axis = "z"; // North-South
+            } else if (axisValue == 0xC) {
+                axis = "none"; // Bark
+            }
+            
+            properties.put("axis", axis);
+        }
+        
+        // Stairs - add facing and half properties
+        else if (isStairs(id)) {
+            // Extract facing from bits 0-1
+            int facingValue = damage & 0x3;
+            String facing = "north"; // Default
+            
+            switch (facingValue) {
+                case 0: facing = "east"; break;
+                case 1: facing = "west"; break;
+                case 2: facing = "south"; break;
+                case 3: facing = "north"; break;
+            }
+            
+            properties.put("facing", facing);
+            
+            // Extract half from bit 2
+            boolean isTop = (damage & 0x4) != 0;
+            properties.put("half", isTop ? "top" : "bottom");
+        }
+        
+        // Slabs - add half property (bit 3)
+        else if (isSlab(id)) {
+            boolean isTop = (damage & 0x8) != 0;
+            properties.put("type", isTop ? "top" : "bottom");
+        }
+        
+        // Furnaces, dispensers, etc. - add facing property
+        else if (id == Block.FURNACE || id == Block.BURNING_FURNACE || 
+                id == Block.DISPENSER || id == Block.DROPPER) {
+            int facingValue = damage & 0x7;
+            String facing = "north"; // Default
+            
+            switch (facingValue) {
+                case 2: facing = "north"; break;
+                case 3: facing = "south"; break;
+                case 4: facing = "west"; break;
+                case 5: facing = "east"; break;
+                case 0: facing = "down"; break;
+                case 1: facing = "up"; break;
+            }
+            
+            properties.put("facing", facing);
+        }
     }
     
     /**
      * Map a facing direction to a damage value for applicable blocks.
      */
     private static int mapFacingToDamage(int blockId, String facing) {
-        // This is a simplified example that would need proper implementation
         // Different block types use damage values differently
         
-        switch (blockId) {
-            // Example for directional blocks like furnaces
-            case Block.FURNACE:
-            case Block.BURNING_FURNACE:
-                if ("north".equals(facing)) return 2;
-                if ("south".equals(facing)) return 3;
-                if ("west".equals(facing)) return 4;
-                if ("east".equals(facing)) return 5;
-                break;
-            
-            // Example for stairs
-            case Block.OAK_WOODEN_STAIRS:
-            case Block.COBBLESTONE_STAIRS:
-            case Block.BRICK_STAIRS:
-            case Block.STONE_BRICK_STAIRS:
-            case Block.NETHER_BRICKS_STAIRS:
-            case Block.SANDSTONE_STAIRS:
-            case Block.SPRUCE_WOOD_STAIRS:
-            case Block.BIRCH_WOOD_STAIRS:
-            case Block.JUNGLE_WOOD_STAIRS:
-            case Block.QUARTZ_STAIRS:
-            case Block.ACACIA_WOOD_STAIRS:
-            case Block.DARK_OAK_WOOD_STAIRS:
-            case Block.RED_SANDSTONE_STAIRS:
-                if ("east".equals(facing)) return 0;
-                if ("west".equals(facing)) return 1;
-                if ("south".equals(facing)) return 2;
-                if ("north".equals(facing)) return 3;
-                break;
+        // Directional blocks like furnaces
+        if (blockId == Block.FURNACE || blockId == Block.BURNING_FURNACE || 
+            blockId == Block.DISPENSER || blockId == Block.DROPPER) {
+            if ("north".equals(facing)) return 2;
+            if ("south".equals(facing)) return 3;
+            if ("west".equals(facing)) return 4;
+            if ("east".equals(facing)) return 5;
+            if ("down".equals(facing)) return 0;
+            if ("up".equals(facing)) return 1;
+        }
+        
+        // Stairs
+        else if (isStairs(blockId)) {
+            if ("east".equals(facing)) return 0;
+            if ("west".equals(facing)) return 1;
+            if ("south".equals(facing)) return 2;
+            if ("north".equals(facing)) return 3;
         }
         
         return -1; // No mapping found
+    }
+    
+    /**
+     * Get default properties for a JE block type.
+     * 
+     * @param blockIdentifier The block identifier (e.g. minecraft:stone)
+     * @return Map of default properties, empty if none
+     */
+    public static Map<String, String> getJeBlockDefaultProperties(String blockIdentifier) {
+        Map<String, String> result = JE_BLOCK_DEFAULT_PROPERTIES.get(blockIdentifier);
+        return result != null ? result : new HashMap<>();
+    }
+
+    /**
+     * Initialize the mapping system by loading JSON files
+     */
+    public static void init() {
+        LOGGER.info("Initializing Nukkit block mappings");
+        setFallbackEnabled(true);
+        
+        try {
+            loadDefaultBlockProperties();
+            loadBlockMappings();
+        } catch (IOException e) {
+            LOGGER.error("Failed to load block mappings", e);
+        }
+    }
+    
+    /**
+     * Load default properties for Java Edition blocks from JSON
+     */
+    private static void loadDefaultBlockProperties() throws IOException {
+        try (InputStream stream = NukkitMapping.class.getClassLoader().getResourceAsStream("je_block_default_states.json")) {
+            if (stream == null) {
+                LOGGER.warn("je_block_default_states.json not found, using empty default properties");
+                return;
+            }
+            
+            Map<String, Map<String, String>> properties = fromJson(stream, new TypeToken<Map<String, Map<String, String>>>() {});
+            JE_BLOCK_DEFAULT_PROPERTIES.putAll(properties);
+            LOGGER.info("Loaded {} default block properties", properties.size());
+        }
+    }
+    
+    /**
+     * Load block mappings from JSON
+     */
+    private static void loadBlockMappings() throws IOException {
+        try (InputStream stream = NukkitMapping.class.getClassLoader().getResourceAsStream("nukkit_mappings/blocks.json")) {
+            if (stream == null) {
+                LOGGER.warn("nukkit_mappings/blocks.json not found, using fallback mappings only");
+                return;
+            }
+            
+            Map<String, BlockMappingData> mappings = fromJson(stream, new TypeToken<Map<String, BlockMappingData>>() {});
+            if (mappings == null) {
+                LOGGER.warn("Invalid blocks.json format");
+                return;
+            }
+            
+            int mappingCount = 0;
+            // Process each mapping
+            for (Map.Entry<String, BlockMappingData> entry : mappings.entrySet()) {
+                try {
+                    String jeId = entry.getKey();
+                    BlockMappingData data = entry.getValue();
+                    
+                    // Handle basic mapping without states
+                    Block baseBlock = Block.get(data.id, data.default_data);
+                    
+                    // Create and cache a JE block state for this base block
+                    NukkitJeBlockState jeBaseState = NukkitJeBlockState.create(jeId, new TreeMap<>());
+                    JE_BLOCK_STATE_HASH_TO_NUKKIT.put(jeBaseState.getHash(), baseBlock);
+                    NUKKIT_TO_JE_BLOCK_STATE.put(baseBlock, jeBaseState);
+                    
+                    // Also add to block cache for faster lookups
+                    String id = jeId;
+                    if (id.startsWith("minecraft:")) {
+                        id = id.substring(10);
+                    }
+                    BLOCK_CACHE.put(id, baseBlock);
+                    mappingCount++;
+                    
+                    // Process states if available
+                    if (data.states != null && !data.states.isEmpty()) {
+                        for (StateMapping stateMapping : data.states) {
+                            if (stateMapping.properties != null && stateMapping.data >= 0) {
+                                // Create block with the specific data value
+                                Block stateBlock = Block.get(data.id, stateMapping.data);
+                                
+                                // Create a JE block state with these properties
+                                NukkitJeBlockState jeStateBlock = NukkitJeBlockState.create(
+                                    jeId, new TreeMap<>(stateMapping.properties));
+                                    
+                                // Add to mappings
+                                JE_BLOCK_STATE_HASH_TO_NUKKIT.put(jeStateBlock.getHash(), stateBlock);
+                                NUKKIT_TO_JE_BLOCK_STATE.put(stateBlock, jeStateBlock);
+                                mappingCount++;
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    LOGGER.warn("Failed to process mapping entry: {}", entry.getKey(), e);
+                }
+            }
+            
+            LOGGER.info("Loaded {} block mappings from JSON", mappingCount);
+        }
     }
     
     /**
@@ -391,11 +520,49 @@ public class NukkitMapping {
         }
     }
     
-    /**
-     * Initialize the mappings and enable fallbacks by default.
-     */
-    public static void init() {
-        LOGGER.info("Initializing Nukkit block mappings");
-        setFallbackEnabled(true);
+    private static <T> T fromJson(InputStream inputStream, TypeToken<T> typeToken) {
+        try {
+            JsonReader reader = new JsonReader(new InputStreamReader(Objects.requireNonNull(inputStream)));
+            return GSON.fromJson(reader, typeToken.getType());
+        } catch (Exception e) {
+            LOGGER.error("Error parsing JSON", e);
+            return null;
+        }
+    }
+    
+    // See https://stackoverflow.com/questions/59655279
+    public static class IgnoreFailureTypeAdapterFactory implements TypeAdapterFactory {
+        @Override
+        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+            TypeAdapter<T> delegate = gson.getDelegateAdapter(this, typeToken);
+            return new TypeAdapter<>() {
+                @Override
+                public void write(JsonWriter writer, T value) throws IOException {
+                    delegate.write(writer, value);
+                }
+
+                @Override
+                public T read(JsonReader reader) throws IOException {
+                    try {
+                        return delegate.read(reader);
+                    } catch(Exception e) {
+                        reader.skipValue();
+                        return null;
+                    }
+                }
+            };
+        }
+    }
+    
+    // Mapping classes for JSON deserialization
+    private static class BlockMappingData {
+        int id;
+        int default_data;
+        List<StateMapping> states;
+    }
+    
+    private static class StateMapping {
+        Map<String, String> properties;
+        int data;
     }
 } 

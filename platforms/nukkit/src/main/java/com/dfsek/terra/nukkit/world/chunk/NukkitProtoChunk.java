@@ -285,51 +285,37 @@ public class NukkitProtoChunk implements ProtoWorld, ProtoChunk {
         try {
             if (y < getMinHeight() || y >= getMaxHeight()) return;
             
-            // Handle negative y-coordinates specially
-            if (y < 0) {
-                // For negative y values, we need to translate the coordinate
-                // Transform only when we store the block in the chunk
-                
-                // Fast path for NukkitBlockState
-                if (blockState instanceof NukkitBlockState nukkitState) {
-                    cn.nukkit.block.Block nukkitBlock = nukkitState.getNukkitBlock();
-                    // Store in the non-negative section as a workaround
-                    delegate.setBlock(x, 0, z, nukkitBlock.getId(), nukkitBlock.getDamage());
-                    return;
-                }
-                
-                // For non-NukkitBlockState
-                String blockString = blockState.getAsString();
-                
-                // Fast check for AIR - most common block in chunk generation
-                if (blockString.equals("minecraft:air") || blockString.equals("air")) {
-                    return; // Skip setting air blocks in negative y-space
-                }
-                
-                // For other block types in negative y-space, use bedrock or diamond block
-                // Diamond blocks make unmapped blocks easier to spot
-                if (y == getMinHeight()) {
-                    delegate.setBlock(x, 0, z, cn.nukkit.block.Block.BEDROCK, 0);
-                } else {
-                    delegate.setBlock(x, 0, z, cn.nukkit.block.Block.DIAMOND_BLOCK, 0);
-                }
-                return;
-            }
+            // Log unmapped blocks BEFORE we apply any replacements
+            String blockString = blockState.getAsString();
             
-            // Normal handling for non-negative y values
+            // Handle all y-coordinates - no special handling for negative y
+            // Instead, we'll remap them to the positive range in our internal storage
+            
             // Fast path for NukkitBlockState
             if (blockState instanceof NukkitBlockState nukkitState) {
                 cn.nukkit.block.Block nukkitBlock = nukkitState.getNukkitBlock();
+                // Store negative coords shifted into the positive range (e.g., -1 → 0, -2 → 0, etc.)
+                // Place bedrock at actual minimum height, not hardcoded to y=0
+                if (y == getMinHeight() && nukkitBlock.getId() == cn.nukkit.block.Block.BEDROCK) {
+                    int minY = Math.max(0, getMinHeight()); // Use 0 if getMinHeight() returns negative values
+                    delegate.setBlock(x, minY, z, nukkitBlock.getId(), nukkitBlock.getDamage());
+                    return;
+                } else if (y < 0) {
+                    // Skip placing blocks in negative y-space for now
+                    // This allows Terra to generate without trying to place blocks below y=0
+                    return;
+                }
+                // Normal placement for positive y values
                 delegate.setBlock(x, y, z, nukkitBlock.getId(), nukkitBlock.getDamage());
                 return;
             }
             
+            // Standard handling for all other blocks
             // Extract block name
-            String blockString = blockState.getAsString();
-            
-            // Fast check for AIR - most common block in chunk generation
             if (blockString.equals("minecraft:air") || blockString.equals("air")) {
-                delegate.setBlock(x, y, z, cn.nukkit.block.Block.AIR, 0);
+                if (y >= 0) {
+                    delegate.setBlock(x, y, z, cn.nukkit.block.Block.AIR, 0);
+                }
                 return;
             }
 
@@ -344,6 +330,18 @@ public class NukkitProtoChunk implements ProtoWorld, ProtoChunk {
             // Remove minecraft: prefix if present
             if (blockName.startsWith("minecraft:")) {
                 blockName = blockName.substring(10);
+            }
+            
+            // Place bedrock ONLY at the absolute bottom level
+            if (y == getMinHeight() && blockName.equals("bedrock")) {
+                int minY = Math.max(0, getMinHeight()); // Use 0 if getMinHeight() returns negative values
+                delegate.setBlock(x, minY, z, cn.nukkit.block.Block.BEDROCK, 0);
+                return;
+            }
+            
+            // Skip block placement for negative y-coordinates
+            if (y < 0) {
+                return;
             }
             
             // Try to get from cache first for common blocks
@@ -363,10 +361,12 @@ public class NukkitProtoChunk implements ProtoWorld, ProtoChunk {
                 delegate.setBlock(x, y, z, nukkitBlock.getId(), nukkitBlock.getDamage());
             } else {
                 // Default to diamond block if mapping fails - makes unmapped blocks easily visible
+                System.out.println("[Terra] Unmapped block detected: " + blockName + " at position " + x + "," + y + "," + z);
                 delegate.setBlock(x, y, z, cn.nukkit.block.Block.DIAMOND_BLOCK, 0);
             }
         } catch (Exception e) {
             // Use diamond block as fallback for errors too
+            System.out.println("[Terra] Error setting block: " + e.getMessage() + " at " + x + "," + y + "," + z);
             if (y >= 0 && y < getMaxHeight()) {
                 delegate.setBlock(x, y, z, cn.nukkit.block.Block.DIAMOND_BLOCK, 0);
             }

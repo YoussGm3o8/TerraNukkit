@@ -90,4 +90,30 @@ public final class NukkitBlockState implements BlockState {
     public NukkitJeBlockState getJeBlockState() { 
         return jeBlockState; 
     }
+    
+    @Override
+    public String toString() {
+        return "NukkitBlockState{" +
+            "block=" + nukkitBlock.getId() + ":" + nukkitBlock.getDamage() +
+            ", jeBlockState=" + jeBlockState +
+            ", waterlogged=" + containsWater +
+            '}';
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof NukkitBlockState)) return false;
+        
+        NukkitBlockState other = (NukkitBlockState) obj;
+        return matches(other);
+    }
+    
+    @Override
+    public int hashCode() {
+        int result = nukkitBlock.getId();
+        result = 31 * result + nukkitBlock.getDamage();
+        result = 31 * result + (containsWater ? 1 : 0);
+        return result;
+    }
 } 

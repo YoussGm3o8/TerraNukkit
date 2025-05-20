@@ -14,6 +14,7 @@ import com.dfsek.terra.nukkit.generator.NukkitGenerator;
 import com.dfsek.terra.nukkit.listeners.NukkitListener;
 import ca.solostudios.strata.version.Version;
 import ca.solostudios.strata.Versions;
+import com.dfsek.terra.nukkit.block.NukkitMapping;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,11 @@ public class TerraNukkitPlugin extends PluginBase {
         INSTANCE = this;
         getLogger().info("Loading Terra for Nukkit...");
 
-        // Initialize the platform first so we can access config packs
+        // Initialize block mappings first
+        getLogger().info("Initializing block mappings...");
+        NukkitMapping.init();
+        
+        // Initialize the platform so we can access config packs
         getLogger().info("Initializing Nukkit platform...");
         PLATFORM = new NukkitPlatform(this);
         
